@@ -77,7 +77,7 @@ x_norm = L/2.0
 
 device = 'cpu'
 pINN = HeatPINN().to(device)
-pINN.load_state_dict(tt.load('out/decent_model.pt', map_location=device))
+pINN.load_state_dict(tt.load('out/best_model.pt', map_location=device))
 print("Model Loaded Sucessfully!!")
 
 def pinn_predict(t_phys, x_phys, T_in, v, alpha, T_amb, T_max=500.0, T_min=273.0):

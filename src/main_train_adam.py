@@ -124,11 +124,6 @@ def const_loss(Xe_org, T_max=500.0, T_min=273.0, T_amb_max = 350.0):
     init_mask = Xe[:, 0] == -1
     bc_mask   = Xe[:, 1] == -1
     
-    # Target for Init: (Tinf - Mid) / Scale
-    # T_norm = (T_physical - Mid) / Scale
-    mid_T = (T_max + T_min) / 2.0
-    scale_T = (T_max - T_min) / 2.0
-    
     T_target_init_norm =  Xe[:, 5:6]
     
     # Target for BC: (T_in - Mid) / Scale
