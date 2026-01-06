@@ -192,7 +192,7 @@ def step():
     # Weights can now be closer to 1.0 since units are balanced
     lambda_obs  = 10.0
     lambda_pde  = 1.0   
-    lambda_bc   = 10.0
+    lambda_bc   = 50.0
     lambda_init = 50.0
     lambda_t    = 1e-3  # Sobolev regularization weight
 
