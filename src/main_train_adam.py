@@ -19,38 +19,53 @@ T_MAX = 500.0
 T_MIN = 273.0
 DT_SCALE = T_MAX - T_MIN
 
-def sample_Xr(nr, T_max=500.0, T_min=273.0, v_max=1.0, v_min=0.0, alpha_max=3e-3, alpha_min=1e-6, T_amb_max = 350.0, L=1000, tf=3600):
-    t = tt.rand(nr, 1, device=device) * (tf - 0.1) + 0.1
-    x = tt.rand(nr, 1, device=device) * (L - 0.1) + 0.1
+def lhs(n_samples, n_dim, device='cpu'):
+    # Generate LHS in [0,1]
+    u = tt.rand(n_samples, n_dim, device=device)
+    lhs_samples = tt.zeros_like(u)
 
-    # random parameters (same ranges as dataset)
-    T_in = tt.rand(nr, 1, device=device) * (T_max - T_min) + T_min
-    v = tt.rand(nr, 1, device=device) * (v_max - v_min) + v_min
-    alpha = tt.rand(nr, 1, device=device) * (alpha_max - alpha_min) + alpha_min
-    T_amb = tt.rand(nr, 1, device=device) * (T_amb_max - T_min) + T_min
+    for j in range(n_dim):
+        perm = tt.randperm(n_samples, device=device)
+        lhs_samples[:, j] = (perm + u[:, j]) / n_samples
+
+    return lhs_samples
+
+
+def sample_Xr(nr, T_max=500.0, T_min=273.0, v_max=1.0, v_min=0.0, alpha_max=3e-3, alpha_min=1e-6, T_amb_max = 350.0, L=1000, tf=3600):
+    
+    Z = lhs(nr, 6, device=device)
+
+    t     = Z[:, [0]] * (tf - 0.1) + 0.1
+    x     = Z[:, [1]] * (L  - 0.1) + 0.1
+    T_in  = Z[:, [2]] * (T_max - T_min) + T_min
+    v     = Z[:, [3]] * (v_max - v_min) + v_min
+    alpha = Z[:, [4]] * (alpha_max - alpha_min) + alpha_min
+    T_amb = Z[:, [5]] * (T_amb_max - T_min) + T_min
 
     return tt.cat([t, x, T_in, v, alpha, T_amb], dim=1)
 
 def sample_Xe(ne, T_max=500.0, T_min=273.0, v_max=1.0, v_min=0.0, alpha_max=3e-3, alpha_min=1e-6, T_amb_max = 350.0, L=1000, tf=3600):
     # Initial condition: t = 0
     t0 = tt.zeros(ne // 2, 1, device=device)
-    x0 = tt.rand(ne // 2, 1, device=device) * (L - 0.01) + 0.01
 
-    T_in0 = tt.rand(ne // 2, 1, device=device) * (T_max - T_min) + T_min
-    v0 = tt.rand(ne // 2, 1, device=device) * (v_max - v_min) + v_min
-    alpha0 = tt.rand(ne // 2, 1, device=device) * (alpha_max - alpha_min) + alpha_min
-    T_amb0 = tt.rand(ne // 2, 1, device=device) * (T_amb_max - T_min) + T_min
+    Z0 = lhs(ne // 2, 5, device=device)
+    x0     = Z0[:, [1]] * (L  - 0.1) + 0.1
+    T_in0  = Z0[:, [2]] * (T_max - T_min) + T_min
+    v0     = Z0[:, [3]] * (v_max - v_min) + v_min
+    alpha0 = Z0[:, [4]] * (alpha_max - alpha_min) + alpha_min
+    T_amb0 = Z0[:, [5]] * (T_amb_max - T_min) + T_min
 
     X_init = tt.cat([t0, x0, T_in0, v0, alpha0, T_amb0], dim=1)
 
     # Boundary condition: x = 0
-    tb = tt.rand(ne // 2, 1, device=device) * tf
     xb = tt.zeros(ne // 2, 1, device=device)
 
-    T_inb = tt.rand(ne // 2, 1, device=device) * (T_max - T_min) + T_min
-    vb = tt.rand(ne // 2, 1, device=device) * (v_max - v_min) + v_min
-    alphab = tt.rand(ne // 2, 1, device=device) * (alpha_max - alpha_min) + alpha_min
-    T_ambb = tt.rand(ne // 2, 1, device=device) * (T_amb_max - T_min) + T_min
+    Zb = lhs(ne // 2, 5, device=device)
+    tb     = Zb[:, [1]] * (tf - 0.1) + 0.1
+    T_inb  = Zb[:, [2]] * (T_max - T_min) + T_min
+    vb     = Zb[:, [3]] * (v_max - v_min) + v_min
+    alphab = Zb[:, [4]] * (alpha_max - alpha_min) + alpha_min
+    T_ambb = Zb[:, [5]] * (T_amb_max - T_min) + T_min
 
     X_bc = tt.cat([tb, xb, T_inb, vb, alphab, T_ambb], dim=1)
 

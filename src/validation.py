@@ -38,7 +38,7 @@ alpha = h * P / (rho * cp * A)
 
 # ------------------ INLET PROFILE ------------------
 T_base = Tinf
-T_heat = 475.0
+T_heat = 303.0
 t_start_pulse = 0
 t_duration = 3600
 
@@ -77,7 +77,7 @@ x_norm = L/2.0
 
 device = 'cpu'
 pINN = HeatPINN().to(device)
-pINN.load_state_dict(tt.load('out/best_model.pt', map_location=device))
+pINN.load_state_dict(tt.load('out/final_model.pt', map_location=device))
 print("Model Loaded Sucessfully!!")
 
 def pinn_predict(t_phys, x_phys, T_in, v, alpha, T_amb, T_max=500.0, T_min=273.0):
